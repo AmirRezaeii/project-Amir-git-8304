@@ -20,6 +20,11 @@ void removestr(char *command);
 void copystr(char *command, char *clipboard);
 void cutstr(char *command, char *clipboard);
 void pastestr(char *command, char *clipboard);
+void undo(char *command, char *prev_command);
+void auto_indent(char *command);
+void auto_enters(char *command);
+void auto_tabs(char *command);
+void compare(char *command);
 
 int main() {
     char *clipboard= (char *)malloc(MAX_SIZE * sizeof (char));
@@ -51,10 +56,14 @@ int getcommand(char *clipboard) {
     int i = 0;
     char *command = (char *) malloc(MAX_SIZE * sizeof(char));
     char *special_part = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *perv_command = (char *) malloc(MAX_SIZE * sizeof (char));
+    memset(perv_command, 0, MAX_SIZE);
+    strcpy(perv_command, command);
     memset(command, 0, MAX_SIZE);
     memset(special_part, 0, MAX_SIZE);
     gets(command);
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (1) {
+        if(command[i] == ' ' && command[i + 1] == '-') break;
         special_part[i] = command[i];
         i++;
     }
@@ -78,6 +87,15 @@ int getcommand(char *clipboard) {
         return 1;
     }else if(strcmp(special_part, "pastestr") == 0){
         pastestr(command, clipboard);
+        return 1;
+    }else if(strcmp(special_part, "undo") == 0){
+        undo(command, perv_command);
+        return 1;
+    }else if(strcmp(special_part, "auto-indent") == 0){
+        auto_indent(command);
+        return 1;
+    }else if(strcmp(special_part , "compare") == 0){
+        compare(command);
         return 1;
     }
     return 0;
@@ -514,5 +532,291 @@ void pastestr(char *command, char *clipboard){
         fclose(fPtr);
         remove("root/kiri_project.txt");
     } else printf("file doesn't exist!\n");
+}
 
+void undo(char *command, char *prev_command){
+
+}
+
+void auto_indent(char *command){
+    int i = 0, j = 0;
+    char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *chosen_part_cpy= (char *) malloc(MAX_SIZE * sizeof (char ));
+    memset(chosen_part, 0, MAX_SIZE);
+    memset(chosen_part_cpy, 0, MAX_SIZE);
+    while (command[i] != '/') i++;
+    i++;
+    while (i != strlen(command)) {
+        chosen_part[j] = command[i];
+        i++;
+        j++;
+    }
+    if (access(chosen_part, F_OK) == 0) {
+        auto_enters(command);
+        auto_tabs(command);
+        printf("Success!\n");
+    } else printf("file doesn't exist!\n");
+}
+
+void auto_enters(char *command){
+    int i = 0, j = 0;
+    char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *chosen_part_cpy= (char *) malloc(MAX_SIZE * sizeof (char ));
+    memset(chosen_part, 0, MAX_SIZE);
+    memset(chosen_part_cpy, 0, MAX_SIZE);
+    while (command[i] != '/') i++;
+    i++;
+    while (i != strlen(command)) {
+        chosen_part[j] = command[i];
+        i++;
+        j++;
+    }
+    strcpy(chosen_part_cpy, chosen_part);
+    memset(chosen_part, 0, MAX_SIZE);
+    FILE *fPtr = fopen(chosen_part_cpy, "r");
+    i= 0, j= 0;
+    char c = fgetc(fPtr);
+    while(c != EOF){
+        chosen_part[i] = c;
+        i++;
+        c = fgetc(fPtr);
+    }
+    int size = strlen(chosen_part);
+    for(i= 0; i < strlen(chosen_part); i++){
+        if(chosen_part[i] == ' ' && chosen_part[i + 1] == '{') {
+            for (int k = i; k < strlen(chosen_part); k++) chosen_part[k] = chosen_part[k + 1];
+        }else if(chosen_part[i] == '}' && chosen_part[i + 1] == ' '){
+            for(int k=i + 1; k<strlen(chosen_part); k++) chosen_part[k] = chosen_part[k+1];
+        }
+    }
+    for(i=0; i<size; i++){
+        if(chosen_part[i - 1] == '{' && chosen_part[i] != '\n'){
+            for(j=size; j>i; j--) chosen_part[j] = chosen_part[j-1];
+            chosen_part[i] = '\n';
+            size++;
+        }
+        if(chosen_part[i - 1] == '}' && chosen_part[i] != '\n'){
+            for(j=size; j>i; j--) chosen_part[j] = chosen_part[j-1];
+            chosen_part[i] = '\n';
+            size++;
+        }
+        if(chosen_part[i - 1] == '{' && chosen_part[i] == '}'){
+            for(j=size; j>i; j--) chosen_part[j] = chosen_part[j-1];
+            chosen_part[i] = '\n';
+            size++;
+        }
+    }
+    for(i=1; i<size; i++){
+        if(chosen_part[i] == '}' && chosen_part[i-1] != '\n'){
+            for(j=size; j>i-1; j--) chosen_part[j] = chosen_part[j-1];
+            chosen_part[i] = '\n';
+            size++;
+        }
+        if(chosen_part[i] == '{' && chosen_part[i-1] != ' ' && chosen_part[i-1] != '\n'){
+            for(j=size; j>i-1; j--) chosen_part[j] = chosen_part[j-1];
+            chosen_part[i] = ' ';
+            size++;
+        }
+    }
+    fclose(fPtr);
+    fPtr = fopen(chosen_part_cpy, "w");
+    fputs(chosen_part, fPtr);
+    fclose(fPtr);
+}
+
+void auto_tabs(char *command){
+    int i = 0, j = 0, counter= 0;
+    char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *chosen_part_cpy= (char *) malloc(MAX_SIZE * sizeof (char ));
+    memset(chosen_part, 0, MAX_SIZE);
+    memset(chosen_part_cpy, 0, MAX_SIZE);
+    while (command[i] != '/') i++;
+    i++;
+    while (i != strlen(command)) {
+        chosen_part[j] = command[i];
+        i++;
+        j++;
+    }
+    strcpy(chosen_part_cpy, chosen_part);
+    memset(chosen_part, 0, MAX_SIZE);
+    FILE *fPtr = fopen(chosen_part_cpy, "r");
+    i= 0;
+    char c = fgetc(fPtr);
+    while(c != EOF){
+        chosen_part[i] = c;
+        i++;
+        c = fgetc(fPtr);
+    }
+    int length= strlen(chosen_part);
+    for(i=0; i< length; i++){
+        if(chosen_part[i] == '{') counter += 4;
+        if(chosen_part[i - 1] == '\n' && chosen_part[i] == '}') counter -=4;
+        if(counter < 0) break;
+        if(chosen_part[i - 1] == '\n'){
+            j = i;
+            while(j < length && chosen_part[j] == ' '){
+                for(int k=j; k<strlen(chosen_part); k++) chosen_part[k] = chosen_part[k+1];
+                length --;
+            }
+            length += counter;
+            for(j=length; j> i + counter - 1; j--) chosen_part[j] = chosen_part[j - counter];
+            for(j=i; j< i + counter; j++) chosen_part[j] = ' ';
+        }
+    }
+    fclose(fPtr);
+    fPtr = fopen(chosen_part_cpy, "w");
+    fputs(chosen_part, fPtr);
+    fclose(fPtr);
+}
+
+void compare(char *command){
+    int i = 0, j = 0, k= 0, i1= 0, j1=0, line1= 0, line2= 0, start;
+    char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *chosen_part_cpy = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *str1= (char *) malloc (MAX_SIZE * sizeof (char));
+    char *str2= (char *) malloc (MAX_SIZE * sizeof (char));
+    char *all= (char *) malloc (MAX_SIZE *sizeof (char));
+    memset(chosen_part, 0, MAX_SIZE);
+    memset(chosen_part_cpy, 0, MAX_SIZE);
+    memset(str1, 0, MAX_SIZE);
+    memset(str2, 0, MAX_SIZE);
+    memset(all, 0, MAX_SIZE);
+    while (command[i] != '/') i++;
+    i++;
+    while (command[i] != ' ' && command[i + 1] != '-') {
+        chosen_part[j] = command[i];
+        i++;
+        j++;
+    }
+    strcpy(chosen_part_cpy, chosen_part);
+    memset(chosen_part, 0, MAX_SIZE);
+    while (command[i] != '/') i++;
+    i++;
+    j= 0;
+    while(i <= strlen(command)){
+        chosen_part[j] = command[i];
+        j++;
+        i++;
+    }
+    i = 0, j = 0;
+    FILE *file1= fopen(chosen_part_cpy, "r");
+    FILE *file2= fopen(chosen_part, "r");
+    char ch1, ch2;
+    /*------------------------------------------------------------*/
+    while(1){
+        memset(str1, 0, MAX_SIZE);
+        memset(str2, 0, MAX_SIZE);
+        str1[i]= fgetc(file1);
+        while(1){
+            if(str1[i] == '\n' || str1[i] == EOF){
+                if(str1[i] == EOF) i1= -1;
+                str1[i]= '\0';
+                line1++;
+                break;
+            }
+            i++;
+            str1[i]= fgetc(file1);
+        }
+        str2[j]= fgetc(file2);
+        while(1){
+            if(str2[j] == '\n' || str2[j] == EOF){
+                if(str2[j] == EOF)j1= -1;
+                str2[j]= '\0';
+                line2++;
+                break;
+            }
+            j++;
+            str2[j]= fgetc(file2);
+        }
+        if(i1 == -1 && j1 == -1)return;
+        if(strcmp(str1, str2) != 0){
+            printf("====== #%d =====\n", line1);
+            printf("%s\n", str1);
+            printf("%s\n", str2);
+        }
+        j= 0;
+        i= 0;
+        if(i1 == -1){
+            start= line2 + 1;
+            while(1) {
+                str2[j] = fgetc(file2);
+                while (1) {
+                    if (str2[j] == '\n' || str2[j] == EOF) {
+                        if (str2[j] == EOF) j1 = -1;
+                        all[k] = str2[j];
+                        k++;
+                        j++;
+                        line2++;
+                        break;
+                    }
+                    all[k] = str2[j];
+                    k++;
+                    j++;
+                    str2[j] = fgetc(file2);
+                }
+                if (j1 == -1) {
+                    k = 0;
+                    printf("<<<<< #%d - #%d <<<<<\n", start, line2);
+                    for (int l = start; l < line2 + 1; l++) {
+                        while (1) {
+                            ch2 = all[k];
+                            if (ch2 == '\n') {
+                                printf("\n");
+                                k++;
+                                break;
+                            }
+                            if (ch2 == EOF) return;
+                            printf("%c", ch2);
+                            k++;
+                        }
+                    }
+                    return;
+                }
+            }
+        }
+        j= 0;
+        i= 0;
+        if(j1 == -1){
+            start= line1 + 1;
+            while(1) {
+                str1[i] = fgetc(file1);
+                while (1) {
+                    if (str1[i] == '\n' || str1[i] == EOF) {
+                        if (str1[i] == EOF) i1 = -1;
+                        all[k] = str1[i];
+                        k++;
+                        i ++;
+                        line1++;
+                        break;
+                    }
+                    all[k] = str1[i];
+                    k++;
+                    i++;
+                    str1[i] = fgetc(file1);
+                }
+                if (i1 == -1) {
+                    k = 0;
+                    printf(">>>>> #%d - #%d >>>>>\n", start, line1);
+                    for (int l = start; l < line1 + 1; l++) {
+                        while (1) {
+                            ch1 = all[k];
+                            if (ch1 == '\n') {
+                                printf("\n");
+                                k++;
+                                break;
+                            }
+                            if (ch1 == EOF) return;
+                            printf("%c", ch1);
+                            k++;
+                        }
+                    }
+                    return;
+                }
+            }
+        }
+
+        i= 0, j= 0, k= 0;
+    }
+    fclose(file1);
+    fclose(file2);
 }
