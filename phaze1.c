@@ -25,6 +25,9 @@ void auto_indent(char *command);
 void auto_enters(char *command);
 void auto_tabs(char *command);
 void compare(char *command);
+int one_difference(char str1[MAX_SIZE], char str2[MAX_SIZE]);
+void tree(char *command);
+void arman(char *command);
 
 int main() {
     char *clipboard= (char *)malloc(MAX_SIZE * sizeof (char));
@@ -96,6 +99,12 @@ int getcommand(char *clipboard) {
         return 1;
     }else if(strcmp(special_part , "compare") == 0){
         compare(command);
+        return 1;
+    }else if(strcmp(special_part, "tree") == 0){
+        tree(command);
+        return 1;
+    }else if(strcmp(special_part, "arman") == 0){
+        arman(command);
         return 1;
     }
     return 0;
@@ -728,11 +737,66 @@ void compare(char *command){
             j++;
             str2[j]= fgetc(file2);
         }
-        if(i1 == -1 && j1 == -1)return;
+        if(i1 == -1 && j1 == -1){
+            fclose(file1);
+            fclose(file2);
+            return;
+        }
         if(strcmp(str1, str2) != 0){
             printf("====== #%d =====\n", line1);
-            printf("%s\n", str1);
-            printf("%s\n", str2);
+            int num= one_difference(str1, str2);
+            if(num != -1){
+                int counter= 0;
+                char word1[MAX_SIZE], word2[MAX_SIZE];
+                int l= 0, m= 0, n= 0, p= 0, number= 0, check= 0;
+                while(1) {
+                    memset(word1, 0, MAX_SIZE);
+                    while (str1[l] != ' ') {
+                        if(str1[l] == '\n' || str1[l] == '\0'){
+                            check =1;
+                            break;
+                        }
+                        word1[n] = str1[l];
+                        n++;
+                        l++;
+                    }
+                    l++;
+                    n= 0;
+                    counter ++;
+                    if (counter== num)
+                        printf("<<%s>> " ,word1);
+                    else
+                        printf("%s ", word1);
+                    if(check == 1)break;
+                }
+                printf("\n");
+                counter= 0;
+                check= 0;
+                while(1) {
+                    memset(word2, 0, MAX_SIZE);
+                    while (str2[m] != ' ') {
+                        if(str2[m] == '\n' || str2[m] == '\0'){
+                            check =1;
+                            break;
+                        }
+                        word2[p] = str2[m];
+                        p++;
+                        m++;
+                    }
+                    m++;
+                    p= 0;
+                    counter ++;
+                    if (counter== num)
+                        printf("<<%s>> " ,word2);
+                    else
+                        printf("%s ", word2);
+                    if(check == 1)break;
+                }
+                printf("\n");
+            }else {
+                printf("%s\n", str1);
+                printf("%s\n", str2);
+            }
         }
         j= 0;
         i= 0;
@@ -765,11 +829,19 @@ void compare(char *command){
                                 k++;
                                 break;
                             }
-                            if (ch2 == EOF) return;
+                            if (ch2 == EOF) {
+                                printf("\n");
+                                fclose(file1);
+                                fclose(file2);
+                                return;
+                            }
                             printf("%c", ch2);
                             k++;
                         }
                     }
+                    printf("\n");
+                    fclose(file1);
+                    fclose(file2);
                     return;
                 }
             }
@@ -805,11 +877,19 @@ void compare(char *command){
                                 k++;
                                 break;
                             }
-                            if (ch1 == EOF) return;
+                            if (ch1 == EOF) {
+                                printf("\n");
+                                fclose(file1);
+                                fclose(file2);
+                                return;
+                            }
                             printf("%c", ch1);
                             k++;
                         }
                     }
+                    printf("\n");
+                    fclose(file1);
+                    fclose(file2);
                     return;
                 }
             }
@@ -817,6 +897,69 @@ void compare(char *command){
 
         i= 0, j= 0, k= 0;
     }
-    fclose(file1);
-    fclose(file2);
+}
+
+int one_difference(char str1[MAX_SIZE], char str2[MAX_SIZE]){
+    char word1[MAX_SIZE], word2[MAX_SIZE];
+    int i= 0, j= 0, k= 0, l= 0, number= 0, check= 0, counter=0;
+    while(1) {
+        while (str1[i] != ' ') {
+            if(str1[i] == '\n' || str1[i] == '\0'){
+                check =1;
+                break;
+            }
+            word1[k] = str1[i];
+            k++;
+            i++;
+        }
+        i++;
+        k= 0;
+        while (str2[j] != ' ') {
+            if (str2[j] == '\n' || str2[j] == '\0') {
+                check = 1;
+                break;
+            }
+            word2[l] = str2[j];
+            l++;
+            j++;
+        }
+        j++;
+        l = 0;
+        if (strcmp(word1, word2) == 0)number++;
+        counter ++;
+        if(check == 1)break;
+    }
+    if(number == counter - 1) return counter;
+    else return -1;
+}
+
+void tree(char *command){
+    int i = 0, number= 0;
+    i+=8;
+    while (command[i] != '\0') {
+        number = number * 10 + command[i] - 48;
+        i++;
+    }
+    if(number <-1)printf("invalid depth\n");
+    else if(number == 0){
+        printf("root:\n");
+    }
+    else if(number == 1){
+        DIR *d;
+        int j= 0;
+        struct dirent *dir;
+        d = opendir("root");
+        printf("root:\n");
+        if (d){
+            while ((dir = readdir(d)) != NULL){
+                if(j > 1) printf("    %s\n", dir->d_name);
+                j++;
+            }
+            closedir(d);
+        }
+    }
+}
+
+void arman(char *command){
+
 }
