@@ -30,10 +30,16 @@ void tree(char *command);
 void arman(char *command);
 void find(char *command);
 void replace(char *command);
+void grep(char *command);
 
 int main() {
+    FILE  *f= fopen("root", "w");
+    fclose(f);
     char *clipboard= (char *)malloc(MAX_SIZE * sizeof (char));
-    while (1) if (!getcommand(clipboard)) printf("invalid command\n");
+    while (1) {
+        if (getcommand(clipboard) == 0) printf("invalid command\n");
+        else if(getcommand(clipboard) == 2) return 0;
+    }
 }
 
 void createfile(char *command) {
@@ -43,6 +49,10 @@ void createfile(char *command) {
     while (command[i] != '/') i++;
     i++;
     while (i != strlen(command)) {
+        if(command[i]== '\"'){
+            i++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -114,7 +124,10 @@ int getcommand(char *clipboard) {
     }else if(strcmp(special_part, "replace") == 0){
         replace(command);
         return 1;
-    }
+    }else if(strcmp(special_part, "gret") == 0){
+        grep(command);
+        return 1;
+    }else if(strcmp(special_part, "exit") == 0) return 2;
     return 0;
 }
 
@@ -140,14 +153,19 @@ void direct(char *chosen_part) {
 }
 
 void insertstr(char *command) {
-    int i = 0, j = 0, k = 0, line = 0, pos = 0;
+    int i = 0, j = 0, k = 0, line = 0, pos = 0, quote = 0;
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy = (char *) malloc(MAX_SIZE * sizeof(char));
     memset(chosen_part, 0, MAX_SIZE);
     memset(chosen_part_cpy, 0, MAX_SIZE);
     while (command[i] != '/') i++;
     i++;
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (command[i] != ' ' && command[i + 1] != '-' || (quote%2) == 1) {
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -185,7 +203,12 @@ void insertstr(char *command) {
         strcpy(chosen_part_cpy, chosen_part);
         memset(chosen_part, 0, MAX_SIZE);
         i += 7;
-        while (command[i] != ' ' && command[i + 1] != '-') {
+        while (command[i] != ' ' && command[i + 1] != '-' || (quote%2) == 1) {
+            if(command[i] == '\"'&& command[i- 1]!='\\') {
+                i++;
+                quote++;
+                continue;
+            }
             chosen_part[j] = command[i];
             i++;
             j++;
@@ -206,13 +229,17 @@ void insertstr(char *command) {
                     j++;
                 } else if (j == pos) {
                     while (k != strlen(chosen_part)) {
-                        if (chosen_part[k] == '\\' && chosen_part[k + 1] == 'n') {
+                        if (chosen_part[k] == '\\' && chosen_part[k + 1] == 'n' && chosen_part[k - 1] != '\\') {
                             fputc('\n', file);
                             k += 2;
-                        } else if (chosen_part[k] == '\\' && chosen_part[k + 1] == '\\') {
+                        } else if (chosen_part[k] == '\\' && chosen_part[k + 1] == '\\' && chosen_part[k + 2] != 'n') {
                             fputc('\\', file);
                             k += 2;
-                        } else {
+                        }else if (chosen_part[k] == '\\' && chosen_part[k + 1] == 'n' && chosen_part[k - 1] == '\\') {
+                            fputc('\\', file);
+                            fputc('n', file);
+                            k += 3;
+                        }else {
                             fputc(chosen_part[k], file);
                             k++;
                         }
@@ -251,6 +278,10 @@ void cat(char *command) {
     while (command[i] != ' ' && command[i + 1] != '-') i++;
     i += 9;
     while (command[i] != '\0') {
+        if(command[i]== '\"'){
+            i++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -272,7 +303,7 @@ void cat(char *command) {
 }
 
 void removestr(char *command) {
-    int i = 0, j = 0, k, line = 0, pos = 0, length= 0, max_length = 0, kiram_too_net= 0;
+    int i = 0, j = 0, k, line = 0, pos = 0, length= 0, max_length = 0, kiram_too_net= 0, quote= 0;
     long long length_of_line[MAX_SIZE];
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy = (char *) malloc(MAX_SIZE * sizeof(char));
@@ -284,7 +315,12 @@ void removestr(char *command) {
     memset(new_all_char, 0, MAX_SIZE);
     while (command[i] != '/') i++;
     i++;
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (command[i] != ' ' && command[i + 1] != '-' || (quote%2) == 1) {
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -369,7 +405,7 @@ void removestr(char *command) {
 
 void copystr(char *command, char *clipboard){
     memset(clipboard, 0, MAX_SIZE);
-    int i = 0, j = 0, k, line = 0, pos = 0, length= 0, max_length = 0, kiram_too_net= 0;
+    int i = 0, j = 0, k, line = 0, pos = 0, length= 0, max_length = 0, kiram_too_net= 0, quote= 0;
     long long length_of_line[MAX_SIZE];
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy = (char *) malloc(MAX_SIZE * sizeof(char));
@@ -381,7 +417,12 @@ void copystr(char *command, char *clipboard){
     memset(new_all_char, 0, MAX_SIZE);
     while (command[i] != '/') i++;
     i++;
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (command[i] != ' ' && command[i + 1] != '-' || (quote%2) == 1) {
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -458,14 +499,19 @@ void cutstr(char *command, char *clipboard){
 }
 
 void pastestr(char *command, char *clipboard){
-    int i = 0, j = 0, k = 0, line = 0, pos = 0;
+    int i = 0, j = 0, k = 0, line = 0, pos = 0, quote= 0;
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy = (char *) malloc(MAX_SIZE * sizeof(char));
     memset(chosen_part, 0, MAX_SIZE);
     memset(chosen_part_cpy, 0, MAX_SIZE);
     while (command[i] != '/') i++;
     i++;
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (command[i] != ' ' && command[i + 1] != '-' || (quote%2)== 1) {
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -564,6 +610,10 @@ void auto_indent(char *command){
     while (command[i] != '/') i++;
     i++;
     while (i != strlen(command)) {
+        if(command[i]== '\"'){
+            i++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -687,7 +737,7 @@ void auto_tabs(char *command){
 }
 
 void compare(char *command){
-    int i = 0, j = 0, k= 0, i1= 0, j1=0, line1= 0, line2= 0, start;
+    int i = 0, j = 0, k= 0, i1= 0, j1=0, line1= 0, line2= 0, start, quote= 0;
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy = (char *) malloc(MAX_SIZE * sizeof(char));
     char *str1= (char *) malloc (MAX_SIZE * sizeof (char));
@@ -700,7 +750,12 @@ void compare(char *command){
     memset(all, 0, MAX_SIZE);
     while (command[i] != '/') i++;
     i++;
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (command[i] != ' ' && command[i + 1] != '-' || (quote%2)==1) {
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -711,6 +766,10 @@ void compare(char *command){
     i++;
     j= 0;
     while(i <= strlen(command)){
+        if(command[i]== '\"'){
+            i++;
+            continue;
+        }
         chosen_part[j] = command[i];
         j++;
         i++;
@@ -973,18 +1032,28 @@ void arman(char *command){
 }
 
 void find(char *command){
-    int i = 0, j = 0, k = 0, line = 0, pos = 0;
+    int i = 0, j = 0, k = 0, line = 0, pos = 0, quote= 0;
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy= (char *)malloc(MAX_SIZE* sizeof (char));
     char *new_part= (char *)malloc (MAX_SIZE * sizeof (char));
     memset(chosen_part, 0, MAX_SIZE);
     memset(chosen_part_cpy, 0, MAX_SIZE);
     memset(new_part, 0, MAX_SIZE);
-    while (command[i] != ' ' && command[i + 1] != '-') {
+    while (command[i] != ' ' && command[i + 1] != '-' || (quote%2)== 1) {
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         i++;
     }
     i += 7;
-    while (command[i] != ' ' && command[i+ 1] != '-'){
+    while (command[i] != ' ' && command[i+ 1] != '-' || (quote %2) == 1){
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         if(command[i] == '\\' && command[i+1] == '*'){
             chosen_part[j]= command[i+1];
             i+=2;
@@ -1010,6 +1079,7 @@ void find(char *command){
         if (access(chosen_part, F_OK) == 0) {
             FILE *fPtr = fopen(chosen_part, "r");
             char str[MAX_SIZE];
+            str[i]= getc(fPtr);
             while (str[i] != EOF){
                 i++;
                 str[i]= getc(fPtr);
@@ -1157,7 +1227,7 @@ void find(char *command){
 }
 
 void replace(char *command){
-    int i = 0, j = 0, k = 0, line = 0, pos = 0;
+    int i = 0, j = 0, k = 0, line = 0, pos = 0, quote= 0;
     char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
     char *chosen_part_cpy= (char *)malloc(MAX_SIZE* sizeof (char));
     char *chosen_part_cpy_cpy= (char *)malloc(MAX_SIZE* sizeof (char));
@@ -1170,7 +1240,12 @@ void replace(char *command){
         i++;
     }
     i += 7;
-    while (command[i] != ' ' && command[i+ 1] != '-'){
+    while (command[i] != ' ' && command[i+ 1] != '-' || (quote%2)==1){
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         if(command[i] == '\\' && command[i+1] == '*'){
             chosen_part_cpy[j]= command[i+1];
             i+=2;
@@ -1182,7 +1257,12 @@ void replace(char *command){
     }
     i += 7;
     j= 0;
-    while (command[i] != ' ' && command[i+ 1] != '-'){
+    while (command[i] != ' ' && command[i+ 1] != '-' || (quote % 2) == 1){
+        if(command[i] == '\"'&& command[i- 1]!='\\') {
+            i++;
+            quote++;
+            continue;
+        }
         if(command[i] == '\\' && command[i+1] == '*'){
             chosen_part_cpy_cpy[j]= command[i+1];
             i+=2;
@@ -1196,6 +1276,10 @@ void replace(char *command){
     i++;
     j =0;
     while(command[i] != '\0' && (command[i] != ' ' || command[i + 1] != '-')){
+        if(command[i]== '\"'){
+            i++;
+            continue;
+        }
         chosen_part[j] = command[i];
         i++;
         j++;
@@ -1359,6 +1443,213 @@ void replace(char *command){
             } else printf("file doesn't exist!\n");
         }else{
             printf("Invalid input\n");
+        }
+    }
+}
+
+void grep(char *command){
+    int i = 0, j = 0, k = 0, quote= 0;
+    char *chosen_part = (char *) malloc(MAX_SIZE * sizeof(char));
+    char *chosen_part_cpy= (char *)malloc(MAX_SIZE* sizeof (char));
+    char *new_part= (char *)malloc (MAX_SIZE * sizeof (char));
+    memset(chosen_part, 0, MAX_SIZE);
+    memset(chosen_part_cpy, 0, MAX_SIZE);
+    memset(new_part, 0, MAX_SIZE);
+    while (command[i] != ' ' && command[i + 1] != '-') {
+        i++;
+    }
+    i += 3;
+    if(command[i]== 's'){
+        i+=4;
+        while (command[i] != ' ' && command[i+ 1] != '-' || (quote % 2) == 1){
+            if(command[i] == '\"'&& command[i- 1]!='\\') {
+                i++;
+                quote++;
+                continue;
+            }
+            if(command[i] == '\\' && command[i+1] == '*'){
+                chosen_part_cpy[j]= command[i+1];
+                i+=2;
+            }else {
+                chosen_part_cpy[j] = command[i];
+                i++;
+            }
+            j++;
+        }
+        while(command[i] != '/') i++;
+        i++;
+        j= 0;
+        while(command[i - 1] != '\0') {
+            j= 0;
+            while (command[i] != ' ' && command[i] != '\0' || (quote%2)== 1) {
+                if(command[i] == '\"'&& command[i- 1]!='\\') {
+                    i++;
+                    quote++;
+                    continue;
+                }
+                chosen_part[j] = command[i];
+                i++;
+                j++;
+            }
+            i+=2;
+            j=0;
+            if (access(chosen_part, F_OK) == 0) {
+                FILE *fPtr = fopen(chosen_part, "r");
+                char str[MAX_SIZE];
+                str[j]= getc(fPtr);
+                while (str[j] != EOF){
+                    j++;
+                    str[j]= getc(fPtr);
+                }
+                int index = -1, line = 0, count_line= 0;
+                for (j = 0; str[j] != '\0'; j++) {
+                    if(str[j] == '\n') line++;
+                    index = -1;
+                    for (k = 0; chosen_part_cpy[k] != '\0'; k++) {
+                        if (str[j + k] != chosen_part_cpy[k]) {
+                            index = -1;
+                            break;
+                        }
+                        index = j;
+                    }
+                    if (index != -1) {
+                        count_line= 0;
+                        int l= 0;
+                        printf("%s:  ", chosen_part);
+                        while (count_line != line) {
+                            for (l = 0; str[l] != '\0'; l++) {
+                                if (str[l] == '\n') count_line++;
+                                if(count_line == line) break;
+                            }
+                        }
+                        if(line != 0) l++;
+                        while (str[l] != '\n' && str[l] != '\0') {
+                            printf("%c", str[l]);
+                            l++;
+                        }
+                        printf("\n");
+                    }
+                }
+            } else printf("file doesn't exist!\n");
+        }
+    }else if(command[i]== 'C') {
+        int counter= 0;
+        i += 8;
+        while (command[i] != ' ' && command[i + 1] != '-' || (quote % 2) == 1) {
+            if(command[i] == '\"'&& command[i- 1]!='\\') {
+                i++;
+                quote++;
+                continue;
+            }
+            if (command[i] == '\\' && command[i + 1] == '*') {
+                chosen_part_cpy[j] = command[i + 1];
+                i += 2;
+            } else {
+                chosen_part_cpy[j] = command[i];
+                i++;
+            }
+            j++;
+        }
+        while (command[i] != '/') i++;
+        i++;
+        j = 0;
+        while (command[i - 1] != '\0') {
+            j = 0;
+            while (command[i] != ' ' && command[i] != '\0' || (quote%2)==1) {
+                if(command[i] == '\"'&& command[i- 1]!='\\') {
+                    i++;
+                    quote++;
+                    continue;
+                }
+                chosen_part[j] = command[i];
+                i++;
+                j++;
+            }
+            i += 2;
+            j = 0;
+            if (access(chosen_part, F_OK) == 0) {
+                FILE *fPtr = fopen(chosen_part, "r");
+                char str[MAX_SIZE];
+                str[j] = getc(fPtr);
+                while (str[j] != EOF) {
+                    j++;
+                    str[j] = getc(fPtr);
+                }
+                int index = -1, line = 0;
+                for (j = 0; str[j] != '\0'; j++) {
+                    if (str[j] == '\n') line++;
+                    index = -1;
+                    for (k = 0; chosen_part_cpy[k] != '\0'; k++) {
+                        if (str[j + k] != chosen_part_cpy[k]) {
+                            index = -1;
+                            break;
+                        }
+                        index = j;
+                    }
+                    if (index != -1) counter ++;
+                }
+            } else printf("file doesn't exist!\n");
+        }
+        printf("%d\n", counter);
+    }else if(command[i]== 'I'){
+        i+=8;
+        while (command[i] != ' ' && command[i+ 1] != '-' || (quote%2)== 1){
+            if(command[i] == '\"'&& command[i- 1]!='\\') {
+                i++;
+                quote++;
+                continue;
+            }
+            if(command[i] == '\\' && command[i+1] == '*'){
+                chosen_part_cpy[j]= command[i+1];
+                i+=2;
+            }else {
+                chosen_part_cpy[j] = command[i];
+                i++;
+            }
+            j++;
+        }
+        while(command[i] != '/') i++;
+        i++;
+        j= 0;
+        while(command[i - 1] != '\0') {
+            j= 0;
+            while (command[i] != ' ' && command[i] != '\0' || (quote%2) == 1) {
+                if(command[i] == '\"'&& command[i- 1]!='\\') {
+                    i++;
+                    quote++;
+                    continue;
+                }
+                chosen_part[j] = command[i];
+                i++;
+                j++;
+            }
+            i+=2;
+            j=0;
+            if (access(chosen_part, F_OK) == 0) {
+                FILE *fPtr = fopen(chosen_part, "r");
+                char str[MAX_SIZE];
+                str[j]= getc(fPtr);
+                while (str[j] != EOF){
+                    j++;
+                    str[j]= getc(fPtr);
+                }
+                int index = -1, line = 0, count_line= 0;
+                for (j = 0; str[j] != '\0'; j++) {
+                    if(str[j] == '\n') line++;
+                    index = -1;
+                    for (k = 0; chosen_part_cpy[k] != '\0'; k++) {
+                        if (str[j + k] != chosen_part_cpy[k]) {
+                            index = -1;
+                            break;
+                        }
+                        index = j;
+                    }
+                    if (index != -1) {
+                        printf("%s\n", chosen_part);
+                        break;
+                    }
+                }
+            } else printf("file doesn't exist!\n");
         }
     }
 }
