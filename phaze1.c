@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <windows.h>
 
 #define MAX_SIZE 1000
 
@@ -215,6 +216,19 @@ void insertstr(char *command) {
         }
         i = 0, j = 0, k = 0;
         //*********************************************************************************************
+        FILE *fhide= fopen("kir_to_insert.txt", "w");
+        FILE *fh = fopen(chosen_part_cpy, "r");
+        char hide= '0';
+        while(hide != EOF){
+            hide=fgetc(fh);
+            fputc(hide, fhide);
+        }
+        fclose(fhide);
+        fclose(fh);
+        int attr = GetFileAttributes("kir_to_insert.txt");
+        if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+            SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+        }
         FILE *file = fopen("root/kiri_project.txt", "a");
         FILE *fPtr = fopen(chosen_part_cpy, "r");
         char str[MAX_SIZE], c;
@@ -353,6 +367,19 @@ void removestr(char *command) {
         chosen_part[0] = command[i];
         i = 0, j = 0, k = 0;
         //*********************************************************************************************
+        FILE *fhide= fopen("kir_to_insert.txt", "w");
+        FILE *fh = fopen(chosen_part_cpy, "r");
+        char hide= '0';
+        while(hide != EOF){
+            hide=fgetc(fh);
+            fputc(hide, fhide);
+        }
+        fclose(fhide);
+        fclose(fh);
+        int attr = GetFileAttributes("kir_to_insert.txt");
+        if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+            SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+        }
         FILE *fPtr = fopen(chosen_part_cpy, "r");
         char c = '0';
         while (c != EOF) {
@@ -545,6 +572,19 @@ void pastestr(char *command, char *clipboard){
         }
         i = 0, j = 0, k = 0;
         //*********************************************************************************************
+        FILE *fhide= fopen("kir_to_insert.txt", "w");
+        FILE *fh = fopen(chosen_part, "r");
+        char hide= '0';
+        while(hide != EOF){
+            hide=fgetc(fh);
+            fputc(hide, fhide);
+        }
+        fclose(fhide);
+        fclose(fh);
+        int attr = GetFileAttributes("kir_to_insert.txt");
+        if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+            SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+        }
         FILE *file = fopen("root/kiri_project.txt", "a");
         FILE *fPtr = fopen(chosen_part, "r");
         char str[MAX_SIZE], c;
@@ -598,7 +638,10 @@ void pastestr(char *command, char *clipboard){
 }
 
 void undo(char *command, char *prev_command){
-
+    int attr = GetFileAttributes("kir_to_insert.txt");
+    if ((attr & FILE_ATTRIBUTE_HIDDEN) == FILE_ATTRIBUTE_HIDDEN) {
+        SetFileAttributes("kir_to_insert.txt", attr & ~FILE_ATTRIBUTE_HIDDEN);
+    }
 }
 
 void auto_indent(char *command){
@@ -617,6 +660,19 @@ void auto_indent(char *command){
         chosen_part[j] = command[i];
         i++;
         j++;
+    }
+    FILE *fhide= fopen("kir_to_insert.txt", "w");
+    FILE *fh = fopen(chosen_part, "r");
+    char hide= '0';
+    while(hide != EOF){
+        hide=fgetc(fh);
+        fputc(hide, fhide);
+    }
+    fclose(fhide);
+    fclose(fh);
+    int attr = GetFileAttributes("kir_to_insert.txt");
+    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
     }
     if (access(chosen_part, F_OK) == 0) {
         auto_enters(command);
@@ -1690,6 +1746,19 @@ void replace(char *command){
             i = 0;
             j = 0;
             if (access(chosen_part, F_OK) == 0) {
+                FILE *fhide= fopen("kir_to_insert.txt", "w");
+                FILE *fh = fopen(chosen_part, "r");
+                char hide= '0';
+                while(hide != EOF){
+                    hide=fgetc(fh);
+                    fputc(hide, fhide);
+                }
+                fclose(fhide);
+                fclose(fh);
+                int attr = GetFileAttributes("kir_to_insert.txt");
+                if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                    SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                }
                 FILE *fPtr = fopen(chosen_part, "r");
                 char str[MAX_SIZE];
                 str[0] = getc(fPtr);
@@ -1760,6 +1829,19 @@ void replace(char *command){
                 }
                 i = 0, j = 0;
                 if (access(chosen_part, F_OK) == 0) {
+                    FILE *fhide= fopen("kir_to_insert.txt", "w");
+                    FILE *fh = fopen(chosen_part, "r");
+                    char hide= '0';
+                    while(hide != EOF){
+                        hide=fgetc(fh);
+                        fputc(hide, fhide);
+                    }
+                    fclose(fhide);
+                    fclose(fh);
+                    int attr = GetFileAttributes("kir_to_insert.txt");
+                    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                    }
                     FILE *fPtr = fopen(chosen_part, "r");
                     char str[MAX_SIZE];
                     str[0] = getc(fPtr);
@@ -1816,6 +1898,19 @@ void replace(char *command){
             } else if (strcmp(new_part, "all") == 0) {
                 i = 0, j = 0;
                 if (access(chosen_part, F_OK) == 0) {
+                    FILE *fhide= fopen("kir_to_insert.txt", "w");
+                    FILE *fh = fopen(chosen_part, "r");
+                    char hide= '0';
+                    while(hide != EOF){
+                        hide=fgetc(fh);
+                        fputc(hide, fhide);
+                    }
+                    fclose(fhide);
+                    fclose(fh);
+                    int attr = GetFileAttributes("kir_to_insert.txt");
+                    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                    }
                     FILE *fPtr = fopen(chosen_part, "r");
                     char str[MAX_SIZE];
                     str[0] = getc(fPtr);
@@ -1879,6 +1974,19 @@ void replace(char *command){
             i = 0;
             j = 0;
             if (access(chosen_part, F_OK) == 0) {
+                FILE *fhide= fopen("kir_to_insert.txt", "w");
+                FILE *fh = fopen(chosen_part, "r");
+                char hide= '0';
+                while(hide != EOF){
+                    hide=fgetc(fh);
+                    fputc(hide, fhide);
+                }
+                fclose(fhide);
+                fclose(fh);
+                int attr = GetFileAttributes("kir_to_insert.txt");
+                if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                    SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                }
                 FILE *fPtr = fopen(chosen_part, "r");
                 char str[MAX_SIZE];
                 str[0] = getc(fPtr);
@@ -1945,6 +2053,19 @@ void replace(char *command){
                 }
                 i = 0, j = 0;
                 if (access(chosen_part, F_OK) == 0) {
+                    FILE *fhide= fopen("kir_to_insert.txt", "w");
+                    FILE *fh = fopen(chosen_part, "r");
+                    char hide= '0';
+                    while(hide != EOF){
+                        hide=fgetc(fh);
+                        fputc(hide, fhide);
+                    }
+                    fclose(fhide);
+                    fclose(fh);
+                    int attr = GetFileAttributes("kir_to_insert.txt");
+                    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                    }
                     FILE *fPtr = fopen(chosen_part, "r");
                     char str[MAX_SIZE];
                     str[0] = getc(fPtr);
@@ -1997,6 +2118,19 @@ void replace(char *command){
             } else if (strcmp(new_part, "all") == 0) {
                 i = 0, j = 0;
                 if (access(chosen_part, F_OK) == 0) {
+                    FILE *fhide= fopen("kir_to_insert.txt", "w");
+                    FILE *fh = fopen(chosen_part, "r");
+                    char hide= '0';
+                    while(hide != EOF){
+                        hide=fgetc(fh);
+                        fputc(hide, fhide);
+                    }
+                    fclose(fhide);
+                    fclose(fh);
+                    int attr = GetFileAttributes("kir_to_insert.txt");
+                    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                    }
                     FILE *fPtr = fopen(chosen_part, "r");
                     char str[MAX_SIZE];
                     str[0] = getc(fPtr);
@@ -2056,6 +2190,19 @@ void replace(char *command){
             i = 0;
             j = 0;
             if (access(chosen_part, F_OK) == 0) {
+                FILE *fhide= fopen("kir_to_insert.txt", "w");
+                FILE *fh = fopen(chosen_part, "r");
+                char hide= '0';
+                while(hide != EOF){
+                    hide=fgetc(fh);
+                    fputc(hide, fhide);
+                }
+                fclose(fhide);
+                fclose(fh);
+                int attr = GetFileAttributes("kir_to_insert.txt");
+                if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                    SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                }
                 FILE *fPtr = fopen(chosen_part, "r");
                 char str[MAX_SIZE];
                 str[0] = getc(fPtr);
@@ -2121,6 +2268,19 @@ void replace(char *command){
                 }
                 i = 0, j = 0;
                 if (access(chosen_part, F_OK) == 0) {
+                    FILE *fhide= fopen("kir_to_insert.txt", "w");
+                    FILE *fh = fopen(chosen_part, "r");
+                    char hide= '0';
+                    while(hide != EOF){
+                        hide=fgetc(fh);
+                        fputc(hide, fhide);
+                    }
+                    fclose(fhide);
+                    fclose(fh);
+                    int attr = GetFileAttributes("kir_to_insert.txt");
+                    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                    }
                     FILE *fPtr = fopen(chosen_part, "r");
                     char str[MAX_SIZE];
                     str[0] = getc(fPtr);
@@ -2172,6 +2332,19 @@ void replace(char *command){
             } else if (strcmp(new_part, "all") == 0) {
                 i = 0, j = 0;
                 if (access(chosen_part, F_OK) == 0) {
+                    FILE *fhide= fopen("kir_to_insert.txt", "w");
+                    FILE *fh = fopen(chosen_part, "r");
+                    char hide= '0';
+                    while(hide != EOF){
+                        hide=fgetc(fh);
+                        fputc(hide, fhide);
+                    }
+                    fclose(fhide);
+                    fclose(fh);
+                    int attr = GetFileAttributes("kir_to_insert.txt");
+                    if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                        SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                    }
                     FILE *fPtr = fopen(chosen_part, "r");
                     char str[MAX_SIZE];
                     str[0] = getc(fPtr);
@@ -2278,6 +2451,19 @@ void grep(char *command){
             i+=2;
             j=0;
             if (access(chosen_part, F_OK) == 0) {
+                FILE *fhide= fopen("kir_to_insert.txt", "w");
+                FILE *fh = fopen(chosen_part, "r");
+                char hide= '0';
+                while(hide != EOF){
+                    hide=fgetc(fh);
+                    fputc(hide, fhide);
+                }
+                fclose(fhide);
+                fclose(fh);
+                int attr = GetFileAttributes("kir_to_insert.txt");
+                if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                    SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                }
                 FILE *fPtr = fopen(chosen_part, "r");
                 char str[MAX_SIZE];
                 str[j]= getc(fPtr);
@@ -2360,6 +2546,19 @@ void grep(char *command){
             i += 2;
             j = 0;
             if (access(chosen_part, F_OK) == 0) {
+                FILE *fhide= fopen("kir_to_insert.txt", "w");
+                FILE *fh = fopen(chosen_part, "r");
+                char hide= '0';
+                while(hide != EOF){
+                    hide=fgetc(fh);
+                    fputc(hide, fhide);
+                }
+                fclose(fhide);
+                fclose(fh);
+                int attr = GetFileAttributes("kir_to_insert.txt");
+                if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                    SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                }
                 FILE *fPtr = fopen(chosen_part, "r");
                 char str[MAX_SIZE];
                 str[j] = getc(fPtr);
@@ -2418,6 +2617,19 @@ void grep(char *command){
             i+=2;
             j=0;
             if (access(chosen_part, F_OK) == 0) {
+                FILE *fhide= fopen("kir_to_insert.txt", "w");
+                FILE *fh = fopen(chosen_part, "r");
+                char hide= '0';
+                while(hide != EOF){
+                    hide=fgetc(fh);
+                    fputc(hide, fhide);
+                }
+                fclose(fhide);
+                fclose(fh);
+                int attr = GetFileAttributes("kir_to_insert.txt");
+                if ((attr & FILE_ATTRIBUTE_HIDDEN) == 0) {
+                    SetFileAttributes("kir_to_insert.txt", attr | FILE_ATTRIBUTE_HIDDEN);
+                }
                 FILE *fPtr = fopen(chosen_part, "r");
                 char str[MAX_SIZE];
                 str[j]= getc(fPtr);
